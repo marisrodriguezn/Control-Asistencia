@@ -9,7 +9,7 @@ st.set_page_config(page_title="Registro de Asistencia por QR", layout="centered"
 st.title("📋 Registro de Asistencia por QR")
 
 # 📂 Cargar el Excel directamente desde GitHub (reemplaza con tu enlace RAW)
-excel_url = "https://raw.githubusercontent.com/tuusuario/tu-repo/main/Invitados_con_QR.xlsx"
+excel_url = "https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fraw.githubusercontent.com%2Fmarisrodriguezn%2FControl-Asistencia%2Frefs%2Fheads%2Fmain%2FInvitados_con_QR.xlsx&wdOrigin=BROWSELINK"
 
 try:
     archivo_excel = BytesIO(requests.get(excel_url).content)
