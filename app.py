@@ -3,11 +3,14 @@ import pandas as pd
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import cv2
 from io import BytesIO
+import requests
 
 st.set_page_config(page_title="Registro de Asistencia por QR", layout="centered")
 st.title("📋 Registro de Asistencia por QR")
 
-archivo_excel = st.file_uploader("📁 Sube el archivo Excel con los códigos QR", type=["xlsx"])
+# 📂 Cargar automáticamente el Excel desde GitHub (RAW URL)
+excel_url = "https://raw.githubusercontent.com/tuusuario/tu-repo/main/Invitados_con_QR.xlsx"
+archivo_excel = BytesIO(requests.get(excel_url).content)
 
 class QRScanner(VideoTransformerBase):
     def __init__(self):
@@ -24,31 +27,33 @@ class QRScanner(VideoTransformerBase):
             cv2.rectangle(img, tuple(bbox[0][0]), tuple(bbox[0][2]), (0, 255, 0), 2)
         return img
 
-if archivo_excel:
-    df = pd.read_excel(archivo_excel)
-    if "Asistencia" not in df.columns:
-        df["Asistencia"] = ""
+# Leer el Excel
+df = pd.read_excel(archivo_excel)
+if "Asistencia" not in df.columns:
+    df["Asistencia"] = ""
 
-    webrtc_ctx = webrtc_streamer(key="qr", video_transformer_factory=QRScanner)
+# Escáner QR en vivo
+webrtc_ctx = webrtc_streamer(key="qr", video_transformer_factory=QRScanner)
 
-    if webrtc_ctx.video_transformer and webrtc_ctx.video_transformer.qr_code:
-        qr_code = webrtc_ctx.video_transformer.qr_code.strip()
-        st.markdown(f"🔍 Código escaneado: `{qr_code}`")
+# Validación de código escaneado
+if webrtc_ctx.video_transformer and webrtc_ctx.video_transformer.qr_code:
+    qr_code = webrtc_ctx.video_transformer.qr_code.strip()
+    st.markdown(f"🔍 Código escaneado: `{qr_code}`")
 
-        index = df[df["Código único"] == qr_code].index
-        if not index.empty:
-            i = index[0]
-            if df.at[i, "Asistencia"] == "Asistió":
-                st.error("🚫 Este código ya fue usado.")
-            else:
-                df.at[i, "Asistencia"] = "Asistió"
-                nombre = df.at[i, "Nombre"]
-                st.success(f"✅ Asistencia registrada para: {nombre}")
+    index = df[df["Código único"] == qr_code].index
+    if not index.empty:
+        i = index[0]
+        if df.at[i, "Asistencia"] == "Asistió":
+            st.error("🚫 Este código ya fue usado.")
         else:
-            st.warning("❗ Código no válido. No está en la lista.")
+            df.at[i, "Asistencia"] = "Asistió"
+            nombre = df.at[i, "Nombre"]
+            st.success(f"✅ Asistencia registrada para: {nombre}")
+    else:
+        st.warning("❗ Código no válido. No está en la lista.")
 
-    # Descargar Excel actualizado
-    st.markdown("---")
-    output = BytesIO()
-    df.to_excel(output, index=False)
-    st.download_button("📥 Descargar Excel actualizado", output.getvalue(), file_name="Asistencia_actualizada.xlsx")
+# Descargar Excel actualizado
+st.markdown("---")
+output = BytesIO()
+df.to_excel(output, index=False)
+st.download_button("📥 Descargar Excel actualizado", output.getvalue(), file_name="Asistencia_actualizada.xlsx")
