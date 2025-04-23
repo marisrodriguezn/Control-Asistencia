@@ -2,5 +2,4 @@ streamlit
 pandas
 openpyxl
 streamlit-webrtc
-pyzbar
 opencv-python-headless
