@@ -3,21 +3,20 @@ import pandas as pd
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import cv2
 from io import BytesIO
-import requests
 
 st.set_page_config(page_title="Registro de Asistencia por QR", layout="centered")
 st.title("📋 Registro de Asistencia por QR")
 
-# 📂 Cargar el Excel directamente desde GitHub (reemplaza con tu enlace RAW)
-excel_url = "https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fraw.githubusercontent.com%2Fmarisrodriguezn%2FControl-Asistencia%2Frefs%2Fheads%2Fmain%2FInvitados_con_QR.xlsx&wdOrigin=BROWSELINK"
+# 🔗 Tu archivo de Google Sheets como CSV
+sheet_id = "1SDlt9pr42i9N6-wV8qtEhNqzxM6nmxzAveiwD4l0m5M"
+csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+
 try:
-    archivo_excel = BytesIO(requests.get(excel_url).content)
-    df = pd.read_excel(archivo_excel)
+    df = pd.read_csv(csv_url)
 
     if "Asistencia" not in df.columns:
         df["Asistencia"] = ""
 
-    # Escáner QR
     class QRScanner(VideoTransformerBase):
         def __init__(self):
             self.qr_code = ""
@@ -51,12 +50,11 @@ try:
         else:
             st.warning("❗ Código no válido. No está en la lista.")
 
-    # Descargar Excel actualizado
     st.markdown("---")
     output = BytesIO()
     df.to_excel(output, index=False)
     st.download_button("📥 Descargar Excel actualizado", output.getvalue(), file_name="Asistencia_actualizada.xlsx")
 
 except Exception as e:
-    st.error("❌ No se pudo cargar el archivo automáticamente. Verifica que el enlace RAW sea válido.")
+    st.error("❌ No se pudo cargar el archivo automáticamente. Verifica que el enlace sea válido.")
     st.text(f"Error técnico: {e}")
