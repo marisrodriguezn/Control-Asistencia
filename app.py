@@ -13,11 +13,6 @@ try:
     # Cargar el archivo como DataFrame
     df = pd.read_csv(csv_url)
 
-    # Asegurar que tiene las columnas necesarias
-    if "Código" not in df.columns or "Nombre" not in df.columns:
-        st.error("❌ El archivo no contiene las columnas necesarias ('Código' y 'Nombre').")
-        st.stop()
-
     if "Asistencia" not in df.columns:
         df["Asistencia"] = ""
 
